@@ -21,13 +21,14 @@ def type_message(elem, name):
     elem.send_keys("Often, there is a great deal of waste in the IT consulting and project development industry due to flaky, unpredictable implementations and misalignment of business goals.")
     elem.send_keys(Keys.ENTER)
     elem.send_keys(Keys.ENTER)
-    elem.send_keys("I have experienced this firsthand with my parents’ Amazon business where a project went way over budget from steep hourly pay rates, and they received a solution that missed the mark on the original problem. I have felt this pain enough to know that choosing the right Software & IT consultant can be challenging.")
+    elem.send_keys("I have experienced this firsthand with my parents’ Amazon business where a project budgeted at $950 reached $5k in maintenance while falling short of the business objective.")
+#    elem.send_keys("I have experienced this firsthand with my parents’ Amazon business where a project went way over budget from steep hourly pay rates, and they received a solution that missed the mark on the original problem. I have felt this pain enough to know that choosing the right Software & IT consultant can be challenging.")
     elem.send_keys(Keys.ENTER)
     elem.send_keys(Keys.ENTER)
-    elem.send_keys("Projects like these leave people like yourself with never-ending maintenance costs, complexity in your tech stack, and an overall waste of time and resources. For example, for my parents’ business, they spent over $5000 in additional maintenance fees for an original budget of $950. This is due to developer error and shaky implementations, favoring the developer's business goals of recurring revenue, instead of the customer’s goals. Once I took over development and used a better-reasoned toolset, I reduced their maintenance to $0.")
+    elem.send_keys("Projects like these leave people like yourself with maintenance costs in perpetuity, complexity in your tech stack, and an overall waste of your time and resources. This is due to developer error and shaky implementations, favoring the developer's business goals of recurring revenue, instead of yours")
     elem.send_keys(Keys.ENTER)
     elem.send_keys(Keys.ENTER)
-    elem.send_keys("That's why my consultancy, SolveX, completely takes the blame and financial burden for all maintenance issues. We do this to ensure that our goals actually align with yours: creating high-quality and productive software that is so unlikely to be flaky or buggy that we can guarantee covering maintenance costs. We are not married to any tool; every toolset is wholly dependent on the unique business problem and customer-defined constraints, allowing us to put your needs first and deliver a solution that fits what you're looking for. You can check out my previous projects here:https://galenthehooman.ninja/ - feel free to ask any questions about our process; we encourage it!")
+    elem.send_keys("That's why my consultancy, SolveX, completely takes 100% of the blame and financial burden for all maintenance issues. We do this to ensure that our goals actually align with yours: creating high-quality and productive software that you can absolutely rely on. We are not married to any tool; rather every toolset is wholly dependent on the unique business problem and customer-defined constraints, allowing us to put your needs first and deliver a solution that fits what you're looking for. You can check out my previous projects here:https://galenthehooman.ninja/ - feel free to ask any questions about our process; we encourage it!")
     elem.send_keys(Keys.ENTER)
     elem.send_keys(Keys.ENTER)
     elem.send_keys("If this sounds like something that would be a good fit for your business, let's book a 30-minute consultation call:https://calendly.com/galen-sprout/30min. In this call, we will discuss your business objectives, processes, current challenges, and operational constraints so that I may understand whether or not we are a fit to help your unique business case.")
@@ -134,6 +135,7 @@ def message_new_connects(driver):
 
 currentOrPast_XPATH = "//div[@class='entity-result__content entity-result__divider pt3 pb3 t-12 t-black--light']//p"
 connectBUTTon_XPATH = "//div[@class='entity-result__actions entity-result__divider']//button"
+summary_XPATH = "//div[@class='entity-result__primary-subtitle t-14 t-black t-normal']"
 
 
 def runGetConnects(driver, page_number, connects):
@@ -149,7 +151,13 @@ def runGetConnects(driver, page_number, connects):
             currentOrPastEl = demand_nth_elem(driver, page_number,connects, i, currentOrPast_XPATH)
             print(currentOrPastEl)
             elTexto = currentOrPastEl.get_attribute('innerText').lower()
-            if 'current:' in elTexto and 'project manager' in elTexto and 'at' in elTexto:
+
+            summary = demand_nth_elem(driver, page_number, connects, i, summary_XPATH)
+            elTexto2 = summary.get_attribute('innerText').lower() 
+            
+            A = 'current:' in elTexto and 'project manager' in elTexto and 'at' in elTexto
+            B = 'project manager' in elTexto2 and 'at' in elTexto2
+            if A or B:  
                 #then get the same element idx for profile and click it
                 connectBUTTon = demand_nth_elem(driver, page_number,connects, i, connectBUTTon_XPATH)
                 connectHow = connectBUTTon.get_attribute('innerText').lower()
@@ -167,32 +175,31 @@ def runGetConnects(driver, page_number, connects):
                         driver.find_element("xpath", "//div[@class='artdeco-modal__actionbar ember-view display-flex justify-flex-end']//button[@aria-label='Connect']").click()
                         driver.find_element("xpath", "//button[@aria-label='Send now']").click()
                     else:
-                        ##################NEED TO FIX THIS!!!!!!!!! #############################
-                        # for now I assume that if an unknown dialog pops up, its some verification
-                        # by the connectee and so we say fuck it
-                        #emailConnectRequest = driver.find_elements("xpath", "")
-                        #close = driver.find_elements("xpath", "//button[@aria-label='Dismiss']")
-                        #if len(emailConnectRequest) != 0:
-                        #    emailconnectrequest[0].click()
-                        #else:
-                        ##################NEED TO FIX THIS!!!!!!!!! #############################
-                        demand_nth_elem(driver, page_number, connects, 0, "//button[@aria-label='Send now']").click()
-                        x = driver.find_elements("xpath","//span[@class='entity-result__title-line entity-result__title-line--2-lines']//a")[i].get_attribute('innerText')
-                        connects -= 1
-                        if connects < 0: exit()
-                        print("connects", connects)
-                        print("with", x.split()[:2])
-                                        
-                        # scroll after the 5th result on the page and the 10th to bring up the next 5 and then
-                        # the click next button
+                        #for now I assume that if an unknown dialog pops up, its some verification
+                        #by the connectee and so we say fuck it
+                        emailConnectRequest = driver.find_elements("xpath", "//a[@data-test-send-invite-modal-check-email-link='true']")
+                        close = driver.find_elements("xpath", "//button[@aria-label='Dismiss']")
+                        if len(emailConnectRequest) != 0:
+                           close.click()
+                        else:
+                            connectLimitExists = 0 < len(driver.find_elements("xpath", "//h2[@id='ip-fuse-limit-alert__header']"))
+                            if connectLimitExists:
+                                exit()
+                            else:
+                                demand_nth_elem(driver, page_number, connects, 0, "//button[@aria-label='Send now']").click()
+                                x = driver.find_elements("xpath","//span[@class='entity-result__title-line entity-result__title-line--2-lines']//a")[i].get_attribute('innerText')
+                                connects -= 1
+                                if connects < 0: exit()
+                                print("connects", connects)
+                                print("with", x.split()[:2])
             if (i + 1) % 5 == 0: driver.find_element("xpath","//body").send_keys(Keys.PAGE_DOWN)
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            sleep(5)
-            # go to next page
-            demand_nth_elem(driver, page_number + 1, connects, 0, "//button[@aria-label='Next']").click()
-            page_number += 1
-            sleep(5)
-            if page_number == 100: break
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        sleep(5)
+        # go to next page
+        demand_nth_elem(driver, page_number + 1, connects, 0, "//button[@aria-label='Next']").click()
+        page_number += 1
+        sleep(5)
+        if page_number == 100: break
 
 print('done') 
     
@@ -233,12 +240,12 @@ def getConnects(driver, connects, page_number=1):
         driver2 = start_linkedin()
         driver2 = webdriver.Firefox() # TODO(galen): firefox profile
         # i'd also have to sign in 
-        getConnects(driver2, page_number2, connects2)
+        getConnects(driver2, connects, page_number2)
 
 
 if __name__ == "__main__":
     driver = start_linkedin()
-    #message_new_connects(driver)
+    message_new_connects(driver)
     getConnects(driver, 80, 1)
 
 
